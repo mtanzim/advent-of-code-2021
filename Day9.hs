@@ -26,11 +26,10 @@ getNeighbors lineAbove line lineBelow = map (\((v,ln,rn),(tn,bn)) -> filter (>=0
   lrNeighbors line = leftRightNeighbors (mapFromArray line)
   tbNeighbors lineAbove lineBelow = topBottomNeighbors (mapFromArray (lineAbove)) (mapFromArray lineBelow)
 
-iterateForNeighbors [] = []
-iterateForNeighbors [head] = getNeighbors [] head []
-iterateForNeighbors [head,neck] = getNeighbors head neck []
-iterateForNeighbors (head:neck:torso:tail) = 
-  (getNeighbors head neck torso) ++ iterateForNeighbors (neck:torso:tail)
+iterateForNeighbors _ [] = []
+iterateForNeighbors prev [head] = getNeighbors prev head []
+iterateForNeighbors prev (head:neck:tail) = 
+  (getNeighbors prev head neck) ++ iterateForNeighbors head (neck:tail)
 
 lowPoints :: [[Int]] -> [[Int]]
 lowPoints = filter ( (\(value:neighbors) -> value < (minimum neighbors)))
