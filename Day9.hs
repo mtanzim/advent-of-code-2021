@@ -50,8 +50,9 @@ getNeighbors lineAbove line lineBelow =
         [0 .. (length line - 1)]
 
 iterateForNeighbors :: [Char] -> [[Char]] -> [[Int]]
-iterateForNeighbors _ [] = []
+iterateForNeighbors [] [] = []
 iterateForNeighbors [] [head] = getNeighbors [] head []
+iterateForNeighbors prev [] = getNeighbors prev [] []
 iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighbors head neck []
 iterateForNeighbors prev (head : neck : tail) =
   getNeighbors prev head neck ++ iterateForNeighbors head (neck : tail)
@@ -69,3 +70,32 @@ main :: IO ()
 main = do
   input <- day9Input
   print (riskSum input)
+
+-- for part B
+
+coordinateMap :: [String] -> Int -> Map.Map (Int, Int) Char -> Map.Map (Int, Int) Char
+coordinateMap [] _ curMap = curMap
+coordinateMap (curLine : tail) lineIdx curMap =
+  let mapFromLine = foldr (\charIdx acc -> Map.insert (lineIdx, charIdx) (curLine !! charIdx) acc) curMap [0 .. (length curLine - 1)]
+   in coordinateMap tail (lineIdx + 1) mapFromLine
+
+convertCoordinateMap :: Map.Map k Char -> Map.Map k Int
+convertCoordinateMap = Map.map digitToInt
+
+collectNeighbors :: (Int, Int) -> Map.Map (Int, Int) Int -> [Int]
+collectNeighbors (x, y) coordMap =
+  filter
+    (>= 0)
+    [ findFromMap (x, y) coordMap,
+      findFromMap (x -1, y) coordMap,
+      findFromMap (x + 1, y) coordMap,
+      findFromMap (x, y -1) coordMap,
+      findFromMap (x, y + 1) coordMap
+    ]
+  where
+    findFromMap = Map.findWithDefault (-1)
+
+testCoordinateMap :: [Int]
+testCoordinateMap =
+  let coordMap = convertCoordinateMap (coordinateMap testInput 0 Map.empty)
+   in collectNeighbors (0, 0) coordMap
