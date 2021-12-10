@@ -48,10 +48,16 @@ iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighb
 iterateForNeighbors prev (head:neck:tail) = 
   (getNeighbors prev head neck) ++ iterateForNeighbors head (neck:tail)
 
--- lowPoints :: [[Int]] -> [[Int]]
--- lowPoints = filter ( (\(value:neighbors) -> value < (minimum neighbors)))
+lowPoints :: [[Int]] -> [[Int]]
+lowPoints = filter ( (\(value:neighbors) -> value < (minimum neighbors)))
 
-testMain = iterateForNeighbors [] testInput
+testMain = (sum . map (+1)  .map head . lowPoints . iterateForNeighbors []) testInput
+
+riskSum = sum . map (+1)  .map head . lowPoints . iterateForNeighbors []
+
+main = do
+  input <- day9Input
+  print (riskSum input)
 
 
   -- let 
