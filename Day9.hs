@@ -58,10 +58,3 @@ riskSum = sum . map (+1)  .map head . lowPoints . iterateForNeighbors []
 main = do
   input <- day9Input
   print (riskSum input)
-
-
-  -- let 
-  --   allneighborsTransformed = map (\((v,ln,rn),(tn,bn)) -> filter (>=0) [v,ln,rn,tn,bn] ) (zip lrNeighbors tbNeighbors)
-  --   lowPoints = map head (filter ( (\(value:neighbors) -> value < (minimum neighbors)))  allneighborsTransformed)
-  -- in
-  --   lowPoints 
