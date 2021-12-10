@@ -37,12 +37,24 @@ getNeighbors lineAbove line lineBelow =  map (Map.elems) [mapFromArray line, lNe
 
 getNeighborsBetter lineAbove line lineBelow =  
   let
+    valuesMap = mapFromArray line
     lNeighbors  = leftNeighbors (mapFromArray line)
     rNeighbors = rightNeighbors (mapFromArray line)
     tNeighbors = topNeighbors (mapFromArray lineAbove)
     bNeighbors = bottomNeighbors (mapFromArray lineBelow)
-  in 
-    map (\idx -> [(mapFromArray line) Map.! idx ,  lNeighbors Map.!  idx, rNeighbors Map.!  idx, tNeighbors Map.!  idx, bNeighbors Map.!  idx] )  [0..(length line - 1)]
+  in
+    map (filter (>=0))
+    
+    (map (\idx -> 
+      [
+        Map.findWithDefault (-1) idx valuesMap,
+        Map.findWithDefault (-1) idx lNeighbors,
+        Map.findWithDefault (-1) idx rNeighbors,
+        Map.findWithDefault (-1) idx tNeighbors,
+        Map.findWithDefault (-1) idx bNeighbors
+      ] )  [0..(length line - 1)])
+
+testMain = getNeighborsBetter  [] (testInput !! 0) (testInput !! 1)
 
 -- iterateForNeighbors [] [head] = getNeighbors [] head []
 -- iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighbors head neck []
