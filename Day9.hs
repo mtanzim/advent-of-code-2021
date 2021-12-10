@@ -26,17 +26,19 @@ getNeighbors lineAbove line lineBelow = map (\((v,ln,rn),(tn,bn)) -> filter (>=0
   lrNeighbors line = leftRightNeighbors (mapFromArray line)
   tbNeighbors lineAbove lineBelow = topBottomNeighbors (mapFromArray (lineAbove)) (mapFromArray lineBelow)
 
-testMain [] = []
-testMain [head] = getNeighbors [] head []
-testMain [head,neck] = getNeighbors head neck []
-testMain (head:neck:torso:tail) = 
-  (getNeighbors head neck torso) ++ testMain tail
+iterateForNeighbors [] = []
+iterateForNeighbors [head] = getNeighbors [] head []
+iterateForNeighbors [head,neck] = getNeighbors head neck []
+iterateForNeighbors (head:neck:torso:tail) = 
+  (getNeighbors head neck torso) ++ iterateForNeighbors (neck:torso:tail)
 
+lowPoints :: [[Int]] -> [[Int]]
+lowPoints = filter ( (\(value:neighbors) -> value < (minimum neighbors)))
 
   -- let 
   --   lrNeighbors line = leftRightNeighbors (mapFromArray line)
   --   tbNeighbors lineAbove lineBelow = topBottomNeighbors (mapFromArray (lineAbove)) (mapFromArray lineBelow)
   --   allneighborsTransformed = map (\((v,ln,rn),(tn,bn)) -> filter (>=0) [v,ln,rn,tn,bn] ) (zip lrNeighbors tbNeighbors)
-  --   -- lowPoints = map head (filter ( (\(value:neighbors) -> value < (minimum neighbors)))  allneighborsTransformed)
+  --   lowPoints = map head (filter ( (\(value:neighbors) -> value < (minimum neighbors)))  allneighborsTransformed)
   -- in
   --   lowPoints 
