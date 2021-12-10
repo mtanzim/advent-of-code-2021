@@ -10,10 +10,10 @@ day9Input = do
 testInput = 
   [
     "2199943210",
-    "3987894921"
-    -- "9856789892",
-    -- "8767896789",
-    -- "9899965678"
+    "3987894921",
+    "9856789892",
+    "8767896789",
+    "9899965678"
   ]
 
 
@@ -23,19 +23,8 @@ leftNeighbors arrayMap =  Map.fromList (map ( \(k,v) -> (k, Map.findWithDefault 
 rightNeighbors arrayMap =  Map.fromList (map ( \(k,v) -> (k, Map.findWithDefault (-1) (k +1) arrayMap) ) (Map.toList (arrayMap)))
 topNeighbors topArrayMap =  Map.fromList (map ( \(k,v) -> (k, Map.findWithDefault (-1) (k) topArrayMap) ) (Map.toList (topArrayMap)))
 bottomNeighbors bottomArrayMap =  Map.fromList (map ( \(k,v) -> (k, Map.findWithDefault (-1) (k) bottomArrayMap) ) (Map.toList (bottomArrayMap)))
--- topNeighbors topArrayMap =  map ( \(k,v) -> (v,Map.findWithDefault (-1) k topArrayMap )) (Map.toList (topArrayMap))
--- bottomNeighbors bottomArrayMap =  map ( \(k,v) -> (v,Map.findWithDefault (-1) k bottomArrayMap ) ) (Map.toList (bottomArrayMap))
 
--- map (\entries -> filter (>=0) entries ) 
-
--- argh the zip is the problem
-getNeighbors lineAbove line lineBelow =  map (Map.elems) [mapFromArray line, lNeighbors line, rNeighbors line, tNeighbors lineAbove, bNeighbors lineBelow] where
-  lNeighbors line = leftNeighbors (mapFromArray line)
-  rNeighbors line = rightNeighbors (mapFromArray line)
-  tNeighbors lineAbove = topNeighbors (mapFromArray lineAbove)
-  bNeighbors lineBelow = bottomNeighbors (mapFromArray lineBelow)
-
-getNeighborsBetter lineAbove line lineBelow =  
+getNeighbors lineAbove line lineBelow =  
   let
     valuesMap = mapFromArray line
     lNeighbors  = leftNeighbors (mapFromArray line)
@@ -44,7 +33,6 @@ getNeighborsBetter lineAbove line lineBelow =
     bNeighbors = bottomNeighbors (mapFromArray lineBelow)
   in
     map (filter (>=0))
-    
     (map (\idx -> 
       [
         Map.findWithDefault (-1) idx valuesMap,
@@ -54,15 +42,17 @@ getNeighborsBetter lineAbove line lineBelow =
         Map.findWithDefault (-1) idx bNeighbors
       ] )  [0..(length line - 1)])
 
-testMain = getNeighborsBetter  [] (testInput !! 0) (testInput !! 1)
 
--- iterateForNeighbors [] [head] = getNeighbors [] head []
--- iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighbors head neck []
--- iterateForNeighbors prev (head:neck:tail) = 
---   (getNeighbors prev head neck) ++ iterateForNeighbors head (neck:tail)
+iterateForNeighbors [] [head] = getNeighbors [] head []
+iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighbors head neck []
+iterateForNeighbors prev (head:neck:tail) = 
+  (getNeighbors prev head neck) ++ iterateForNeighbors head (neck:tail)
 
 -- lowPoints :: [[Int]] -> [[Int]]
 -- lowPoints = filter ( (\(value:neighbors) -> value < (minimum neighbors)))
+
+testMain = iterateForNeighbors [] testInput
+
 
   -- let 
   --   allneighborsTransformed = map (\((v,ln,rn),(tn,bn)) -> filter (>=0) [v,ln,rn,tn,bn] ) (zip lrNeighbors tbNeighbors)
