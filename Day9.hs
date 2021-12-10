@@ -29,11 +29,20 @@ bottomNeighbors bottomArrayMap =  Map.fromList (map ( \(k,v) -> (k, Map.findWith
 -- map (\entries -> filter (>=0) entries ) 
 
 -- argh the zip is the problem
-getNeighbors lineAbove line lineBelow = (mapFromArray line, lNeighbors line, rNeighbors line, tNeighbors lineAbove, bNeighbors lineBelow) where
+getNeighbors lineAbove line lineBelow =  map (Map.elems) [mapFromArray line, lNeighbors line, rNeighbors line, tNeighbors lineAbove, bNeighbors lineBelow] where
   lNeighbors line = leftNeighbors (mapFromArray line)
   rNeighbors line = rightNeighbors (mapFromArray line)
   tNeighbors lineAbove = topNeighbors (mapFromArray lineAbove)
   bNeighbors lineBelow = bottomNeighbors (mapFromArray lineBelow)
+
+getNeighborsBetter lineAbove line lineBelow =  
+  let
+    lNeighbors  = leftNeighbors (mapFromArray line)
+    rNeighbors = rightNeighbors (mapFromArray line)
+    tNeighbors = topNeighbors (mapFromArray lineAbove)
+    bNeighbors = bottomNeighbors (mapFromArray lineBelow)
+  in 
+    map (\idx -> [(mapFromArray line) Map.! idx ,  lNeighbors Map.!  idx, rNeighbors Map.!  idx, tNeighbors Map.!  idx, bNeighbors Map.!  idx] )  [0..(length line - 1)]
 
 -- iterateForNeighbors [] [head] = getNeighbors [] head []
 -- iterateForNeighbors prev [head, neck] = getNeighbors prev head neck ++ getNeighbors head neck []
