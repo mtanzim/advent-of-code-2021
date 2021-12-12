@@ -17,6 +17,17 @@ openToCloseLst =
     ('<', '>')
   ]
 
+closeToErrorScore :: [(Char, Int)]
+closeToErrorScore =
+  [ ('}', 1197),
+    (')', 3),
+    (']', 57),
+    ('>', 25137)
+  ]
+
+closeToErrorScoreMap :: Map.Map Char Int
+closeToErrorScoreMap = Map.fromList closeToErrorScore
+
 openToCloseMap :: Map.Map Char Char
 openToCloseMap = Map.fromList openToCloseLst
 
@@ -30,8 +41,12 @@ data Expected = Expected Char deriving (Eq, Show)
 
 data Found = Found Char deriving (Eq, Show)
 
-traverseLine :: [Char] -> [Char] -> Maybe (Expected, Found)
-traverseLine _ [] = Nothing
+data RemainingStack = RemainingStack String
+
+type Result = Either (Expected, Found) RemainingStack
+
+traverseLine :: [Char] -> [Char] -> Result
+traverseLine curStack [] = Right (RemainingStack curStack)
 traverseLine [] (curChar : rest) = traverseLine [curChar] rest
 traverseLine (topOfStack : restOfStack) (curChar : rest) =
   let isCloser = Map.member curChar closeToOpenMap
@@ -40,7 +55,7 @@ traverseLine (topOfStack : restOfStack) (curChar : rest) =
         then
           if curChar == expectedCloser
             then traverseLine restOfStack rest
-            else Just (Expected expectedCloser, Found curChar)
+            else Left (Expected expectedCloser, Found curChar)
         else traverseLine (curChar : topOfStack : restOfStack) rest
 
 testInput :: [String]
@@ -53,11 +68,12 @@ testInput =
     "[<>({}){}[([])<>]]"
   ]
 
-calculateSyntaxScore :: [[Char]] -> [Maybe (Expected, Found)]
-calculateSyntaxScore = filter onlyCorrupted . map (traverseLine [])
+calculateSyntaxScore :: [[Char]] -> Int
+calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (traverseLine [])
   where
-    onlyCorrupted Nothing = False
-    onlyCorrupted (Just _) = True
+    onlyCorrupted (Right _) = False
+    onlyCorrupted (Left _) = True
+    scoreErrors (Left (Expected _, Found c)) = Map.findWithDefault 0 c closeToErrorScoreMap
 
 main :: IO ()
 main = do
