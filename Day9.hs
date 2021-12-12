@@ -82,20 +82,41 @@ coordinateMap (curLine : tail) lineIdx curMap =
 convertCoordinateMap :: Map.Map k Char -> Map.Map k Int
 convertCoordinateMap = Map.map digitToInt
 
-collectNeighbors :: (Int, Int) -> Map.Map (Int, Int) Int -> [Int]
+type Coordinate = (Int, Int)
+
+type NeighborMap = Map.Map Coordinate Int
+
+type VisitedMap = Map.Map Coordinate Bool
+
+collectNeighbors :: (Int, Int) -> NeighborMap -> NeighborMap
 collectNeighbors (x, y) coordMap =
-  filter
-    (>= 0)
-    [ findFromMap (x, y) coordMap,
-      findFromMap (x -1, y) coordMap,
-      findFromMap (x + 1, y) coordMap,
-      findFromMap (x, y -1) coordMap,
-      findFromMap (x, y + 1) coordMap
-    ]
+  Map.fromList $
+    filter
+      (\((_, _), v) -> v >= 0)
+      [ ((x, y), findFromMap (x, y) coordMap),
+        ((x -1, y), findFromMap (x -1, y) coordMap),
+        ((x + 1, y), findFromMap (x + 1, y) coordMap),
+        ((x, y -1), findFromMap (x, y -1) coordMap),
+        ((x, y + 1), findFromMap (x, y + 1) coordMap)
+      ]
   where
     findFromMap = Map.findWithDefault (-1)
 
-testCoordinateMap :: [Int]
+findConnectedNeighbors [] visitedMap _ = visitedMap
+findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
+  let (x, y) = curCoord
+      immediateNeighbors =
+        filter
+          (\((nx, ny), v) -> v < 9 && not (Map.findWithDefault False (nx, ny) visitedMap))
+          (Map.toList (collectNeighbors (x, y) coordMap))
+      immediateNeighborCoords = map fst immediateNeighbors
+      updatedQueue = rest ++ immediateNeighborCoords
+      updatedVisited = foldr (\(curX, curY) curMap -> Map.insert (curX, curY) True curMap) visitedMap immediateNeighborCoords
+   in findConnectedNeighbors updatedQueue updatedVisited coordMap
+
+-- testCoordinateMap :: [Int]
+-- testCoordinateMap :: NeighborMap
 testCoordinateMap =
   let coordMap = convertCoordinateMap (coordinateMap testInput 0 Map.empty)
-   in collectNeighbors (0, 0) coordMap
+   in --  in collectNeighbors (0, 0) coordMap
+      findConnectedNeighbors [(0, 9)] (Map.insert (0, 9) True Map.empty) coordMap
