@@ -1,4 +1,4 @@
-module Day10(day10Main) where
+module Day10 (day10Main) where
 
 import Data.List (sort)
 import qualified Data.Map as Map
@@ -76,7 +76,7 @@ traverseLine (topOfStack : restOfStack) (curChar : rest) =
             else Left (Expected expectedCloser, Found curChar)
         else traverseLine (curChar : topOfStack : restOfStack) rest
 
-calculateSyntaxScore :: [[Char]] -> Int
+calculateSyntaxScore :: RawInput -> Int
 calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (traverseLine [])
   where
     onlyCorrupted (Right _) = False
@@ -84,7 +84,7 @@ calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (trave
     scoreErrors (Left (Expected _, Found c)) = Map.findWithDefault 0 c closeToErrorScoreMap
     scoreErrors _ = 0
 
-calculateAutoCompleteScores :: [[Char]] -> Int
+calculateAutoCompleteScores :: RawInput -> Int
 calculateAutoCompleteScores =
   getMiddleScore
     . sort
