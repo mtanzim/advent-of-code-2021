@@ -41,7 +41,7 @@ data Expected = Expected Char deriving (Eq, Show)
 
 data Found = Found Char deriving (Eq, Show)
 
-data RemainingStack = RemainingStack String
+data RemainingStack = RemainingStack String deriving (Eq, Show)
 
 type Result = Either (Expected, Found) RemainingStack
 
@@ -58,15 +58,7 @@ traverseLine (topOfStack : restOfStack) (curChar : rest) =
             else Left (Expected expectedCloser, Found curChar)
         else traverseLine (curChar : topOfStack : restOfStack) rest
 
-testInput :: [String]
-testInput =
-  [ "{([(<{}[<>[]}>{[]{[(<()>",
-    "[[<[([]))<([[{}[[()]]]",
-    "[{[{({}]{}}([{[{{{}}([]",
-    "[<(<(<(<{}))><([]([]()",
-    "<{([([[(<>()){}]>(<<{{",
-    "[<>({}){}[([])<>]]"
-  ]
+
 
 calculateSyntaxScore :: [[Char]] -> Int
 calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (traverseLine [])
@@ -82,3 +74,14 @@ main = do
 
 testMain :: [Result]
 testMain = map (traverseLine []) testInput
+
+testInput :: [String]
+testInput =
+  [ "{([(<{}[<>[]}>{[]{[(<()>",
+    "[[<[([]))<([[{}[[()]]]",
+    "[{[{({}]{}}([{[{{{}}([]",
+    "[<(<(<(<{}))><([]([]()",
+    "<{([([[(<>()){}]>(<<{{",
+    "[<>({}){}[([])<>]]",
+    "[({(<(())[]>[[{[]{<()<>>"
+  ]
