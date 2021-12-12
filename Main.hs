@@ -1,8 +1,8 @@
 module Main where
 
 import Control.Monad (forever)
-import System.Exit (exitSuccess)
 import Day1 (day1Main)
+import Day10 (day10Main)
 import Day2 (day2Main)
 import Day3 (day3Main)
 import Day4 (day4Main)
@@ -11,6 +11,7 @@ import Day6 (day6Main)
 import Day7 (day7Main)
 import Day8 (day8Main)
 import Day9 (day9Main)
+import System.Exit (exitSuccess)
 
 main :: IO ()
 main = forever $ do
@@ -26,5 +27,6 @@ main = forever $ do
     "7" -> day7Main
     "8" -> day8Main
     "9" -> day9Main
+    "10" -> day10Main
     "q" -> exitSuccess
     _ -> putStrLn "Invalid entry"

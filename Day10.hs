@@ -1,4 +1,4 @@
-module Day10 where
+module Day10(day10Main) where
 
 import Data.List (sort)
 import qualified Data.Map as Map
@@ -9,6 +9,12 @@ day10Input :: IO RawInput
 day10Input = do
   inputs <- readFile "day10Input.txt"
   return (lines inputs)
+
+day10Main :: IO ()
+day10Main = do
+  input <- day10Input
+  print (calculateSyntaxScore input)
+  print (calculateAutoCompleteScores input)
 
 openToCloseLst :: [(Char, Char)]
 openToCloseLst =
@@ -82,9 +88,11 @@ calculateAutoCompleteScores :: [[Char]] -> Int
 calculateAutoCompleteScores =
   getMiddleScore
     . sort
-    . map getTotalScore
-    . map getAutoCompletionScores
-    . map getAutoCompletions
+    . map
+      ( getTotalScore
+          . getAutoCompletionScores
+          . getAutoCompletions
+      )
     . filter onlyIncomplete
     . map (traverseLine [])
   where
@@ -98,13 +106,9 @@ calculateAutoCompleteScores =
       let midIndex = length scores `div` 2
        in scores !! midIndex
 
-main :: IO ()
-main = do
-  input <- day10Input
-  print (calculateSyntaxScore input)
-  print (calculateAutoCompleteScores input)
+-- DEBUG
 
--- testMain :: [Result]
+testMain :: Int
 testMain = calculateAutoCompleteScores testInput
 
 testInput :: [String]
