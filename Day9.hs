@@ -1,6 +1,7 @@
 module Day9 where
 
 import Data.Char (digitToInt)
+import Data.List
 import qualified Data.Map as Map
 
 day9Input :: IO [String]
@@ -8,7 +9,9 @@ day9Input = do
   inputs <- readFile "day9Input.txt"
   return (lines inputs)
 
-testInput :: [[Char]]
+type RawInput = [[Char]]
+
+testInput :: RawInput
 testInput =
   [ "2199943210",
     "3987894921",
@@ -66,10 +69,10 @@ testMain = (sum . map ((+ 1) . head) . lowPoints . iterateForNeighbors []) testI
 riskSum :: [[Char]] -> Int
 riskSum = sum . map ((+ 1) . head) . lowPoints . iterateForNeighbors []
 
-main :: IO ()
-main = do
-  input <- day9Input
-  print (riskSum input)
+-- main :: IO ()
+-- main = do
+--   input <- day9Input
+--   print (riskSum input)
 
 -- for part B
 
@@ -102,6 +105,7 @@ collectNeighbors (x, y) coordMap =
   where
     findFromMap = Map.findWithDefault (-1)
 
+findConnectedNeighbors :: [Coordinate] -> Map.Map Coordinate Bool -> Map.Map Coordinate Int -> Map.Map Coordinate Bool
 findConnectedNeighbors [] visitedMap _ = visitedMap
 findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
   let (x, y) = curCoord
@@ -114,9 +118,36 @@ findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
       updatedVisited = foldr (\(curX, curY) curMap -> Map.insert (curX, curY) True curMap) visitedMap immediateNeighborCoords
    in findConnectedNeighbors updatedQueue updatedVisited coordMap
 
--- testCoordinateMap :: [Int]
--- testCoordinateMap :: NeighborMap
-testCoordinateMap =
-  let coordMap = convertCoordinateMap (coordinateMap testInput 0 Map.empty)
-   in --  in collectNeighbors (0, 0) coordMap
-      findConnectedNeighbors [(0, 9)] (Map.insert (0, 9) True Map.empty) coordMap
+sizeOfBasin :: NeighborMap -> Coordinate -> Int
+sizeOfBasin coordMap startCoord =
+  let connectedNeighbors = findConnectedNeighbors [startCoord] (Map.insert startCoord True Map.empty) coordMap
+      valuesOfConnectedNeighbors = map (\(x, y) -> Map.lookup (x, y) coordMap) (Map.keys connectedNeighbors)
+   in length valuesOfConnectedNeighbors
+
+-- getImmediateNeighbors :: NeighborMap -> [NeighborMap]
+collectLowPoints coordMap = filter fn (Map.keys coordMap)
+  where
+    fn coord =
+      let neighbors = collectNeighbors coord coordMap
+          curVal = Map.findWithDefault (-1) coord coordMap
+          neighborVals = Map.elems neighbors
+       in curVal <= minimum neighborVals
+
+-- collectBasins :: RawInput -> [Int]
+collectBasins :: [Coordinate] -> NeighborMap -> [Int]
+collectBasins toSearch coordMap = map (sizeOfBasin coordMap) toSearch
+
+testMain' = collectBasins [(0, 1), (0, 9), (2, 2), (4, 6)]
+
+getProductOfLargestBasins :: RawInput -> Int
+getProductOfLargestBasins rawInput =
+  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+      lowPoints = collectLowPoints coordMap
+      productOfLargestBasins = foldr (*) 1 . take 3 . reverse . sort
+   in productOfLargestBasins (collectBasins lowPoints coordMap)
+
+main :: IO ()
+main = do
+  input <- day9Input
+  print (riskSum input)
+  print (getProductOfLargestBasins input)
