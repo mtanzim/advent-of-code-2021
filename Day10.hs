@@ -26,8 +26,12 @@ closeToOpenLst = map (\(open, close) -> (close, open)) openToCloseLst
 closeToOpenMap :: Map.Map Char Char
 closeToOpenMap = Map.fromList closeToOpenLst
 
-traverseLine :: [Char] -> [Char] -> [Char]
-traverseLine curStack [] = curStack
+data Expected = Expected Char deriving (Eq, Show)
+
+data Found = Found Char deriving (Eq, Show)
+
+traverseLine :: [Char] -> [Char] -> (Expected, Found)
+traverseLine _ [] = (Expected 'd', Found 'd')
 traverseLine [] (curChar : rest) = traverseLine [curChar] rest
 traverseLine (topOfStack : restOfStack) (curChar : rest) =
   let isCloser = Map.member curChar closeToOpenMap
@@ -36,11 +40,17 @@ traverseLine (topOfStack : restOfStack) (curChar : rest) =
         then
           if curChar == expectedCloser
             then traverseLine restOfStack rest
-            else topOfStack : restOfStack
+            else (Expected expectedCloser, Found curChar)
         else traverseLine (curChar : topOfStack : restOfStack) rest
 
-testInput :: [Char]
-testInput = "{([(<{}[<>[]}>{[]{[(<()>"
+testInput :: [String]
+testInput =
+  [ "{([(<{}[<>[]}>{[]{[(<()>",
+    "[[<[([]))<([[{}[[()]]]",
+    "[{[{({}]{}}([{[{{{}}([]",
+    "[<(<(<(<{}))><([]([]()",
+    "<{([([[(<>()){}]>(<<{{"
+  ]
 
-testMain :: [Char]
-testMain = traverseLine [] testInput
+testMain :: [(Expected, Found)]
+testMain = map (traverseLine []) testInput
