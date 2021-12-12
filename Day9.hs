@@ -102,3 +102,9 @@ testInput =
     "8767896789",
     "9899965678"
   ]
+
+testMainA :: Int
+testMainA = getSumOfRisk testInput
+
+testMainB :: Int
+testMainB = getProductOfLargestBasins testInput
