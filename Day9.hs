@@ -69,12 +69,13 @@ testMain = (sum . map ((+ 1) . head) . lowPoints . iterateForNeighbors []) testI
 riskSum :: [[Char]] -> Int
 riskSum = sum . map ((+ 1) . head) . lowPoints . iterateForNeighbors []
 
--- main :: IO ()
--- main = do
---   input <- day9Input
---   print (riskSum input)
-
 -- for part B
+
+type Coordinate = (Int, Int)
+
+type CoordninateMap = Map.Map Coordinate Int
+
+type VisitedMap = Map.Map Coordinate Bool
 
 coordinateMap :: [String] -> Int -> Map.Map (Int, Int) Char -> Map.Map (Int, Int) Char
 coordinateMap [] _ curMap = curMap
@@ -85,13 +86,9 @@ coordinateMap (curLine : tail) lineIdx curMap =
 convertCoordinateMap :: Map.Map k Char -> Map.Map k Int
 convertCoordinateMap = Map.map digitToInt
 
-type Coordinate = (Int, Int)
 
-type NeighborMap = Map.Map Coordinate Int
 
-type VisitedMap = Map.Map Coordinate Bool
-
-collectNeighbors :: (Int, Int) -> NeighborMap -> NeighborMap
+collectNeighbors :: Coordinate -> CoordninateMap -> CoordninateMap
 collectNeighbors (x, y) coordMap =
   Map.fromList $
     filter
@@ -118,36 +115,46 @@ findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
       updatedVisited = foldr (\(curX, curY) curMap -> Map.insert (curX, curY) True curMap) visitedMap immediateNeighborCoords
    in findConnectedNeighbors updatedQueue updatedVisited coordMap
 
-sizeOfBasin :: NeighborMap -> Coordinate -> Int
+sizeOfBasin :: CoordninateMap -> Coordinate -> Int
 sizeOfBasin coordMap startCoord =
   let connectedNeighbors = findConnectedNeighbors [startCoord] (Map.insert startCoord True Map.empty) coordMap
       valuesOfConnectedNeighbors = map (\(x, y) -> Map.lookup (x, y) coordMap) (Map.keys connectedNeighbors)
    in length valuesOfConnectedNeighbors
 
--- getImmediateNeighbors :: NeighborMap -> [NeighborMap]
+collectLowPoints :: CoordninateMap -> [Coordinate]
 collectLowPoints coordMap = filter fn (Map.keys coordMap)
   where
     fn coord =
-      let neighbors = collectNeighbors coord coordMap
+      let neighbors = Map.filterWithKey (\curCorrd _ -> curCorrd /= coord) (collectNeighbors coord coordMap)
           curVal = Map.findWithDefault (-1) coord coordMap
           neighborVals = Map.elems neighbors
-       in curVal <= minimum neighborVals
+       in curVal < minimum neighborVals
 
--- collectBasins :: RawInput -> [Int]
-collectBasins :: [Coordinate] -> NeighborMap -> [Int]
+collectBasins :: [Coordinate] -> CoordninateMap -> [Int]
 collectBasins toSearch coordMap = map (sizeOfBasin coordMap) toSearch
 
-testMain' = collectBasins [(0, 1), (0, 9), (2, 2), (4, 6)]
+getSumOfRisk :: RawInput -> Int
+getSumOfRisk rawInput =
+  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+      lowPointCoords = collectLowPoints coordMap
+      lowPointValues = map ((+ 1) . (\coord -> Map.findWithDefault (-1) coord coordMap)) lowPointCoords
+   in sum lowPointValues
 
 getProductOfLargestBasins :: RawInput -> Int
 getProductOfLargestBasins rawInput =
   let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
-      lowPoints = collectLowPoints coordMap
-      productOfLargestBasins = foldr (*) 1 . take 3 . reverse . sort
-   in productOfLargestBasins (collectBasins lowPoints coordMap)
+      lowPointCoords = collectLowPoints coordMap
+      productOfLargestBasins = product . take 3 . reverse . sort
+   in productOfLargestBasins (collectBasins lowPointCoords coordMap)
 
 main :: IO ()
 main = do
   input <- day9Input
+  print (getSumOfRisk input)
   print (riskSum input)
   print (getProductOfLargestBasins input)
+
+-- DEBUG
+
+testMain' :: CoordninateMap -> [Int]
+testMain' = collectBasins [(0, 1), (0, 9), (2, 2), (4, 6)]
