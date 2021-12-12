@@ -1,5 +1,6 @@
 module Day10 where
 
+import Data.List (sort)
 import qualified Data.Map as Map
 
 type RawInput = [String]
@@ -24,6 +25,17 @@ closeToErrorScore =
     (']', 57),
     ('>', 25137)
   ]
+
+openToAutoCompletionScore :: [(Char, Int)]
+openToAutoCompletionScore =
+  [ (')', 1),
+    (']', 2),
+    ('}', 3),
+    ('>', 4)
+  ]
+
+openToAutoCompletionScoreMap :: Map.Map Char Int
+openToAutoCompletionScoreMap = Map.fromList openToAutoCompletionScore
 
 closeToErrorScoreMap :: Map.Map Char Int
 closeToErrorScoreMap = Map.fromList closeToErrorScore
@@ -66,17 +78,31 @@ calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (trave
     scoreErrors (Left (Expected _, Found c)) = Map.findWithDefault 0 c closeToErrorScoreMap
     scoreErrors _ = 0
 
-calculateAutoCompleteScores = map getAutoCompletions . filter onlyIncomplete . map (traverseLine [])
+calculateAutoCompleteScores :: [[Char]] -> Int
+calculateAutoCompleteScores =
+  getMiddleScore
+    . sort
+    . map getTotalScore
+    . map getAutoCompletionScores
+    . map getAutoCompletions
+    . filter onlyIncomplete
+    . map (traverseLine [])
   where
     onlyIncomplete (Right _) = True
     onlyIncomplete (Left _) = False
     getAutoCompletions (Right (RemainingStack s)) = map (\c -> Map.findWithDefault 'e' c openToCloseMap) s
     getAutoCompletions _ = ""
+    getAutoCompletionScores = map (\c -> Map.findWithDefault 0 c openToAutoCompletionScoreMap)
+    getTotalScore = foldl (\acc c -> (acc * 5) + c) 0
+    getMiddleScore scores =
+      let midIndex = length scores `div` 2
+       in scores !! midIndex
 
 main :: IO ()
 main = do
   input <- day10Input
   print (calculateSyntaxScore input)
+  print (calculateAutoCompleteScores input)
 
 -- testMain :: [Result]
 testMain = calculateAutoCompleteScores testInput
