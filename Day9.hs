@@ -1,4 +1,4 @@
-module Day9 where
+module Day9 (day9Main) where
 
 import Data.Char (digitToInt)
 import Data.List (sort)
@@ -17,11 +17,25 @@ day9Input = do
   inputs <- readFile "day9Input.txt"
   return (lines inputs)
 
-main :: IO ()
-main = do
+day9Main :: IO ()
+day9Main = do
   input <- day9Input
   print (getSumOfRisk input)
   print (getProductOfLargestBasins input)
+
+getSumOfRisk :: RawInput -> Int
+getSumOfRisk rawInput =
+  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+      lowPointCoords = collectLowPoints coordMap
+      lowPointValues = map ((+ 1) . (\coord -> Map.findWithDefault (-1) coord coordMap)) lowPointCoords
+   in sum lowPointValues
+
+getProductOfLargestBasins :: RawInput -> Int
+getProductOfLargestBasins rawInput =
+  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+      lowPointCoords = collectLowPoints coordMap
+      productOfLargestBasins = product . take 3 . reverse . sort
+   in productOfLargestBasins (collectBasins lowPointCoords coordMap)
 
 coordinateMap :: RawInput -> Int -> Map.Map (Int, Int) Char -> Map.Map (Int, Int) Char
 coordinateMap [] _ curMap = curMap
@@ -46,7 +60,8 @@ collectNeighbors (x, y) coordMap =
   where
     findFromMap = Map.findWithDefault (-1)
 
-findConnectedNeighbors :: [Coordinate] -> Map.Map Coordinate Bool -> Map.Map Coordinate Int -> Map.Map Coordinate Bool
+-- Custom BFS FP Style :yay:
+findConnectedNeighbors :: [Coordinate] -> VisitedMap -> CoordinateMap -> VisitedMap
 findConnectedNeighbors [] visitedMap _ = visitedMap
 findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
   let (x, y) = curCoord
@@ -69,27 +84,13 @@ collectLowPoints :: CoordinateMap -> [Coordinate]
 collectLowPoints coordMap = filter fn (Map.keys coordMap)
   where
     fn coord =
-      let neighbors = Map.filterWithKey (\curCorrd _ -> curCorrd /= coord) (collectNeighbors coord coordMap)
+      let neighbors = Map.filterWithKey (\curCoord _ -> curCoord /= coord) (collectNeighbors coord coordMap)
           curVal = Map.findWithDefault (-1) coord coordMap
           neighborVals = Map.elems neighbors
        in curVal < minimum neighborVals
 
 collectBasins :: [Coordinate] -> CoordinateMap -> [Int]
 collectBasins toSearch coordMap = map (sizeOfBasin coordMap) toSearch
-
-getSumOfRisk :: RawInput -> Int
-getSumOfRisk rawInput =
-  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
-      lowPointCoords = collectLowPoints coordMap
-      lowPointValues = map ((+ 1) . (\coord -> Map.findWithDefault (-1) coord coordMap)) lowPointCoords
-   in sum lowPointValues
-
-getProductOfLargestBasins :: RawInput -> Int
-getProductOfLargestBasins rawInput =
-  let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
-      lowPointCoords = collectLowPoints coordMap
-      productOfLargestBasins = product . take 3 . reverse . sort
-   in productOfLargestBasins (collectBasins lowPointCoords coordMap)
 
 -- DEBUG
 

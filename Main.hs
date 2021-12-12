@@ -10,6 +10,7 @@ import Day5 (day5Main)
 import Day6 (day6Main)
 import Day7 (day7Main)
 import Day8 (day8Main)
+import Day9 (day9Main)
 
 main :: IO ()
 main = forever $ do
@@ -24,5 +25,6 @@ main = forever $ do
     "6" -> day6Main
     "7" -> day7Main
     "8" -> day8Main
+    "9" -> day9Main
     "q" -> exitSuccess
     _ -> putStrLn "Invalid entry"
