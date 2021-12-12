@@ -80,5 +80,5 @@ main = do
   input <- day10Input
   print (calculateSyntaxScore input)
 
-testMain :: [Maybe (Expected, Found)]
+testMain :: [Result]
 testMain = map (traverseLine []) testInput
