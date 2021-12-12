@@ -67,8 +67,10 @@ findConnectedNeighbors (curCoord : rest) visitedMap coordMap =
   let (x, y) = curCoord
       immediateNeighbors =
         filter
-          (\((nx, ny), v) -> v < 9 && not (Map.findWithDefault False (nx, ny) visitedMap))
+          predicateFn
           (Map.toList (collectNeighbors (x, y) coordMap))
+        where
+          predicateFn ((nx, ny), v) = v < 9 && not (Map.findWithDefault False (nx, ny) visitedMap)
       immediateNeighborCoords = map fst immediateNeighbors
       updatedQueue = rest ++ immediateNeighborCoords
       updatedVisited = foldr (\(curX, curY) curMap -> Map.insert (curX, curY) True curMap) visitedMap immediateNeighborCoords
