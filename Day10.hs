@@ -58,22 +58,28 @@ traverseLine (topOfStack : restOfStack) (curChar : rest) =
             else Left (Expected expectedCloser, Found curChar)
         else traverseLine (curChar : topOfStack : restOfStack) rest
 
-
-
 calculateSyntaxScore :: [[Char]] -> Int
 calculateSyntaxScore = sum . map scoreErrors . filter onlyCorrupted . map (traverseLine [])
   where
     onlyCorrupted (Right _) = False
     onlyCorrupted (Left _) = True
     scoreErrors (Left (Expected _, Found c)) = Map.findWithDefault 0 c closeToErrorScoreMap
+    scoreErrors _ = 0
+
+calculateAutoCompleteScores = map getAutoCompletions . filter onlyIncomplete . map (traverseLine [])
+  where
+    onlyIncomplete (Right _) = True
+    onlyIncomplete (Left _) = False
+    getAutoCompletions (Right (RemainingStack s)) = map (\c -> Map.findWithDefault 'e' c openToCloseMap) s
+    getAutoCompletions _ = ""
 
 main :: IO ()
 main = do
   input <- day10Input
   print (calculateSyntaxScore input)
 
-testMain :: [Result]
-testMain = map (traverseLine []) testInput
+-- testMain :: [Result]
+testMain = calculateAutoCompleteScores testInput
 
 testInput :: [String]
 testInput =
@@ -83,5 +89,6 @@ testInput =
     "[<(<(<(<{}))><([]([]()",
     "<{([([[(<>()){}]>(<<{{",
     "[<>({}){}[([])<>]]",
-    "[({(<(())[]>[[{[]{<()<>>"
+    "[({(<(())[]>[[{[]{<()<>>",
+    "[(()[<>])]({[<{<<[]>>("
   ]
