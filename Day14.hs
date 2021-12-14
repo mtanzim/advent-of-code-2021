@@ -82,11 +82,13 @@ day14Input = do
     getRuleList _ = []
 
 -- main :: IO Int
+main :: IO Int
 main = do
   (template, ruleLst) <- day14Input
   return (mainFn template (Map.fromList ruleLst))
 
 -- mainFn :: String -> Map.Map String Char -> Int
+mainFn :: [Char] -> Map.Map String Char -> Int
 mainFn template ruleMap =
   let occurenceMap = makeMapOfOccurence (polymerize 40 ruleMap template)
       values = Map.elems occurenceMap
