@@ -1,34 +1,35 @@
 module Day14 where
 
+import Data.List.Split
 import qualified Data.Map as Map
 
-testTemplate :: [Char]
-testTemplate = "NNCB"
+-- testTemplate :: [Char]
+-- testTemplate = "NNCB"
 
-type PairRule = (String, Char)
+-- type PairRule = (String, Char)
 
-testPairRuleList :: [PairRule]
-testPairRuleList =
-  [ ("CH", 'B'),
-    ("HH", 'N'),
-    ("CB", 'H'),
-    ("NH", 'C'),
-    ("HB", 'C'),
-    ("HC", 'B'),
-    ("HN", 'C'),
-    ("NN", 'C'),
-    ("BH", 'H'),
-    ("NC", 'B'),
-    ("NB", 'B'),
-    ("BN", 'B'),
-    ("BB", 'N'),
-    ("BC", 'B'),
-    ("CC", 'N'),
-    ("CN", 'C')
-  ]
+-- testPairRuleList :: [PairRule]
+-- testPairRuleList =
+--   [ ("CH", 'B'),
+--     ("HH", 'N'),
+--     ("CB", 'H'),
+--     ("NH", 'C'),
+--     ("HB", 'C'),
+--     ("HC", 'B'),
+--     ("HN", 'C'),
+--     ("NN", 'C'),
+--     ("BH", 'H'),
+--     ("NC", 'B'),
+--     ("NB", 'B'),
+--     ("BN", 'B'),
+--     ("BB", 'N'),
+--     ("BC", 'B'),
+--     ("CC", 'N'),
+--     ("CN", 'C')
+--   ]
 
-testPairRuleMap :: Map.Map String Char
-testPairRuleMap = Map.fromList testPairRuleList
+-- testPairRuleMap :: Map.Map String Char
+-- testPairRuleMap = Map.fromList testPairRuleList
 
 makePairsOfTemplate :: [Char] -> [(Char, Char)]
 makePairsOfTemplate = reverse . go []
@@ -62,8 +63,32 @@ makeMapOfOccurence =
   where
     getExistingValue curChar' curMap' = (+) 1 $ Map.findWithDefault 0 curChar' curMap'
 
-testMain =
-  let occurenceMap = makeMapOfOccurence (polymerize 10 testPairRuleMap testTemplate)
+-- testMain :: Int
+-- testMain =
+--   let occurenceMap = makeMapOfOccurence (polymerize 10 testPairRuleMap testTemplate)
+--       values = Map.elems occurenceMap
+--       minOcc = minimum values
+--       maxOcc = maximum values
+--    in maxOcc - minOcc
+
+-- day14Input :: IO [String]
+day14Input :: IO (String, [([Char], Char)])
+day14Input = do
+  inputs <- readFile "day14Input.txt"
+  return (getTemplate (lines inputs), getRuleList (lines inputs))
+  where
+    getTemplate = head
+    getRuleList (_ : _ : rest) = map ((\[k, v] -> (k, head v)) . splitOn " -> ") rest
+    getRuleList _ = []
+
+-- main :: IO Int
+main = do
+  (template, ruleLst) <- day14Input
+  return (mainFn template (Map.fromList ruleLst))
+
+-- mainFn :: String -> Map.Map String Char -> Int
+mainFn template ruleMap =
+  let occurenceMap = makeMapOfOccurence (polymerize 40 ruleMap template)
       values = Map.elems occurenceMap
       minOcc = minimum values
       maxOcc = maximum values
