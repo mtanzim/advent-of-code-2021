@@ -37,3 +37,21 @@ makePairsOfTemplate = reverse . go []
     go curPairs [_] = curPairs
     go curPairs [cur, neck] = (cur, neck) : curPairs
     go curPairs (cur : neck : rest) = go ((cur, neck) : curPairs) (neck : rest)
+
+applyRuleToPair :: Map.Map String Char -> (Char, Char) -> (Char, Char, Char)
+applyRuleToPair ruleMap (start, end) =
+  let middle = Map.findWithDefault 'e' [start, end] ruleMap
+   in (start, middle, end)
+
+polymerizeOnce :: [Char] -> [Char]
+polymerizeOnce input =
+  let pipeline =
+        concatMap
+          ( (\(s, m, _) -> [s, m])
+              . applyRuleToPair pairRuleMap
+          )
+          . makePairsOfTemplate
+   in (++) (pipeline input) [last input]
+
+polymerize :: Int -> [Char] -> [Char]
+polymerize n start = foldr (\_ acc -> polymerizeOnce acc) start [1 .. n]
