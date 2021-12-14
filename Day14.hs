@@ -7,8 +7,8 @@ testTemplate = "NNCB"
 
 type PairRule = (String, Char)
 
-pairRuleLst :: [PairRule]
-pairRuleLst =
+testPairRuleList :: [PairRule]
+testPairRuleList =
   [ ("CH", 'B'),
     ("HH", 'N'),
     ("CB", 'H'),
@@ -27,8 +27,8 @@ pairRuleLst =
     ("CN", 'C')
   ]
 
-pairRuleMap :: Map.Map String Char
-pairRuleMap = Map.fromList pairRuleLst
+testPairRuleMap :: Map.Map String Char
+testPairRuleMap = Map.fromList testPairRuleList
 
 makePairsOfTemplate :: [Char] -> [(Char, Char)]
 makePairsOfTemplate = reverse . go []
@@ -62,4 +62,9 @@ makeMapOfOccurence =
   where
     getExistingValue curChar' curMap' = (+) 1 $ Map.findWithDefault 0 curChar' curMap'
 
-testMain = makeMapOfOccurence (polymerize 10 pairRuleMap "NNCB")
+testMain =
+  let occurenceMap = makeMapOfOccurence (polymerize 10 testPairRuleMap testTemplate)
+      values = Map.elems occurenceMap
+      minOcc = minimum values
+      maxOcc = maximum values
+   in maxOcc - minOcc
