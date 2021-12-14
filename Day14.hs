@@ -55,3 +55,9 @@ polymerizeOnce input =
 
 polymerize :: Int -> [Char] -> [Char]
 polymerize n start = foldr (\_ acc -> polymerizeOnce acc) start [1 .. n]
+
+makeMapOfOccurence :: String -> Map.Map Char Int
+makeMapOfOccurence =
+  foldr (\curChar curMap -> Map.insert curChar (getExistingValue curChar curMap) curMap) Map.empty
+  where
+    getExistingValue curChar' curMap' = (+) 1 $ Map.findWithDefault 0 curChar' curMap'
