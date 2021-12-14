@@ -43,21 +43,23 @@ applyRuleToPair ruleMap (start, end) =
   let middle = Map.findWithDefault 'e' [start, end] ruleMap
    in (start, middle, end)
 
-polymerizeOnce :: [Char] -> [Char]
-polymerizeOnce input =
+polymerizeOnce :: Map.Map String Char -> [Char] -> [Char]
+polymerizeOnce ruleMap input =
   let pipeline =
         concatMap
           ( (\(s, m, _) -> [s, m])
-              . applyRuleToPair pairRuleMap
+              . applyRuleToPair ruleMap
           )
           . makePairsOfTemplate
    in (++) (pipeline input) [last input]
 
-polymerize :: Int -> [Char] -> [Char]
-polymerize n start = foldr (\_ acc -> polymerizeOnce acc) start [1 .. n]
+polymerize :: Int -> Map.Map String Char -> [Char] -> [Char]
+polymerize n ruleMap start = foldr (\_ acc -> polymerizeOnce ruleMap acc) start [1 .. n]
 
 makeMapOfOccurence :: String -> Map.Map Char Int
 makeMapOfOccurence =
   foldr (\curChar curMap -> Map.insert curChar (getExistingValue curChar curMap) curMap) Map.empty
   where
     getExistingValue curChar' curMap' = (+) 1 $ Map.findWithDefault 0 curChar' curMap'
+
+testMain = makeMapOfOccurence (polymerize 10 pairRuleMap "NNCB")
