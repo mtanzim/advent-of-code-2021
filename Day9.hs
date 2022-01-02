@@ -3,14 +3,11 @@ module Day9 (day9Main) where
 import Data.Char (digitToInt)
 import Data.List (sort)
 import qualified Data.Map as Map
+import Utils(coordinateMap, collectNeighbors, RawInput, convertCoordinateMap, Coordinate, CoordinateMap)
 
-type Coordinate = (Int, Int)
-
-type CoordinateMap = Map.Map Coordinate Int
 
 type VisitedMap = Map.Map Coordinate Bool
 
-type RawInput = [[Char]]
 
 day9Input :: IO RawInput
 day9Input = do
@@ -36,29 +33,6 @@ getProductOfLargestBasins rawInput =
       lowPointCoords = collectLowPoints coordMap
       productOfLargestBasins = product . take 3 . reverse . sort
    in productOfLargestBasins (collectBasins lowPointCoords coordMap)
-
-coordinateMap :: RawInput -> Int -> Map.Map (Int, Int) Char -> Map.Map (Int, Int) Char
-coordinateMap [] _ curMap = curMap
-coordinateMap (curLine : rest) lineIdx curMap =
-  let mapFromLine = foldr (\charIdx acc -> Map.insert (lineIdx, charIdx) (curLine !! charIdx) acc) curMap [0 .. (length curLine - 1)]
-   in coordinateMap rest (lineIdx + 1) mapFromLine
-
-convertCoordinateMap :: Map.Map Coordinate Char -> CoordinateMap
-convertCoordinateMap = Map.map digitToInt
-
-collectNeighbors :: Coordinate -> CoordinateMap -> CoordinateMap
-collectNeighbors (x, y) coordMap =
-  Map.fromList $
-    filter
-      (\((_, _), v) -> v >= 0)
-      [ ((x, y), findFromMap (x, y) coordMap),
-        ((x -1, y), findFromMap (x -1, y) coordMap),
-        ((x + 1, y), findFromMap (x + 1, y) coordMap),
-        ((x, y -1), findFromMap (x, y -1) coordMap),
-        ((x, y + 1), findFromMap (x, y + 1) coordMap)
-      ]
-  where
-    findFromMap = Map.findWithDefault (-1)
 
 -- Custom BFS FP Style :yay:
 findConnectedNeighbors :: [Coordinate] -> VisitedMap -> CoordinateMap -> VisitedMap
