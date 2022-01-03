@@ -1,7 +1,7 @@
 
 module Day15 where
 
-import Utils(RawInput, Coordinate, coordinateMap, convertCoordinateMap, collectNeighbors)
+import Utils(RawInput, Coordinate, CoordinateMap, coordinateMap, convertCoordinateMap, collectNeighbors)
 import qualified Data.Map as Map
 
 data EdgeTo = EdgeTo {
@@ -14,7 +14,7 @@ data TrackerInfo = TrackerInfo {
     edgeTo :: EdgeTo
 } deriving (Eq, Show)
 
--- type Tracker = Map.Map Coordinate TrackerInfo
+type Tracker = Map.Map Coordinate TrackerInfo
 
 day15Input :: IO RawInput
 day15Input = do
@@ -27,9 +27,27 @@ testMain coord = do
     rawInput <- day15Input
     let 
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+        neighbors :: CoordinateMap
         neighbors = collectNeighbors coord coordMap
-        -- updatedTracker :: Tracker
-        updatedTracker = foldr fn Map.empty neighbors where
-            fn ((x,y), risk) acc = Map.insert (x,y) TrackerInfo{distTo=risk, edgeTo=EdgeTo{from=coord,to=(x,y)}} acc
+        neighborsLst = Map.toList neighbors
+        closestNeighbor :: (Coordinate, Int)
+        closestNeighbor =  foldr findMin (head neighborsLst) neighborsLst where 
+            findMin (curCoord, risk) (minCoord, minRisk) = 
+                if risk < minRisk 
+                    then (curCoord, risk) 
+                    else (minCoord, minRisk)
+        updatedTracker :: Tracker
+        updatedTracker = foldr fn Map.empty neighborsLst where
+            fn (curCoord, risk) acc = 
+                Map.insert 
+                    curCoord
+                    TrackerInfo {
+                        distTo=risk, 
+                        edgeTo=
+                            EdgeTo {from=coord,to=curCoord}
+                    } 
+                    acc
      in do
          print (neighbors)
+         print (closestNeighbor)
+         print (updatedTracker)
