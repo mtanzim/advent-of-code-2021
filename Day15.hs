@@ -34,43 +34,49 @@ day15Input = do
 djikstra = do
     rawInput <- day15Input
     let 
+        source :: Coordinate
+        source = (0,0)
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
         edgeTo :: Map.Map Coordinate Coordinate
         edgeTo = Map.empty
         distTo :: Map.Map Coordinate Int
         distTo = foldr fn Map.empty (Map.toList coordMap) where
             fn (curCoord, _) acc = Map.insert curCoord (maxBound :: Int) acc
-        source :: Coordinate
-        source = (0,0)
+
         pq :: PQMin.MinQueue Vertex
         pq = PQMin.singleton (Vertex source 0)
         rv = go pq edgeTo distTo where
             go q et dt = 
-                let 
-                    Vertex v _ = PQMin.findMin q
-                    neighbors :: CoordinateMap
-                    neighbors = collectNeighbors v coordMap
-                    filteredNeighborsLst = Map.toList $ Map.filterWithKey (\k _ -> k /= v) neighbors
-                    zero = (q, et, dt)
-                in
-                    foldr relax zero filteredNeighborsLst where
-                        relax (coord, weight) (q', et', dt') =
-                            let
-                                (from, to) = coord
-                                curDist = Map.findWithDefault 0 coord dt'
-                                newDist = curDist + weight
-                                updatedCurDist = min curDist newDist
-                                curEdgeTo = Map.findWithDefault coord coord et'
-                                updatedCurEdgeTo = if newDist < curDist then coord else curEdgeTo
-                                filteredQ = PQMin.filter (\(Vertex coord' dist) -> coord /= coord') q'
-                                
-                                updatedQ = PQMin.insert (Vertex coord updatedCurDist) filteredQ
-                                updatedDistTo = Map.mapWithKey udtf dt' where
-                                    udtf k v = if k == coord then updatedCurDist else v
-                                updatedEdgeTo = Map.mapWithKey uetf et' where
-                                    uetf k v = if k == coord then updatedCurEdgeTo else v
-                            in
-                                (updatedQ, updatedEdgeTo, updatedDistTo)
+                if PQMin.null q then
+                    et
+                else
+                    let 
+                        Vertex fromCoord _ = PQMin.findMin q
+                        neighbors :: CoordinateMap
+                        neighbors = collectNeighbors fromCoord coordMap
+                        filteredNeighborsLst = Map.toList $ Map.filterWithKey (\k _ -> k /= fromCoord) neighbors
+                        zero = (PQMin.deleteMin q, et, dt)
+                        (uq, uet, udt) = foldr relax zero filteredNeighborsLst where
+                            relax (toCoord, weight) (q', et', dt') =
+                                let
+                                    fromDistTo = Map.findWithDefault 0 fromCoord dt'
+                                    toDistTo = Map.findWithDefault 0 toCoord dt'
+                                    minDistTo = min toDistTo (fromDistTo + weight)
+                                    updatedDistTo = Map.mapWithKey udtf dt' where
+                                        udtf k v = if k == toCoord then minDistTo else v
+
+                                    curEdgeTo = Map.findWithDefault toCoord fromCoord et'
+                                    updatedCurEdgeTo = if minDistTo < toDistTo then toCoord else curEdgeTo
+                                    updatedEdgeTo = Map.mapWithKey uetf et' where
+                                        uetf k v = if k == toCoord then updatedCurEdgeTo else v
+
+                                    filteredQ = PQMin.filter (\(Vertex coord' _) -> toCoord /= coord') q'
+                                    updatedQ = PQMin.insert (Vertex toCoord minDistTo) filteredQ
+
+
+                                in
+                                    (updatedQ, updatedEdgeTo, updatedDistTo)
+                        in go uq uet udt
 
 
 
@@ -78,8 +84,8 @@ djikstra = do
 
 
         -- go pq distTo
-    print (PQMin.toList pq)
-    print (distTo)
+    -- print (PQMin.toList pq)
+    -- print (distTo)
     print (rv)
     
 
