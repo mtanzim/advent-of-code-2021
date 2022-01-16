@@ -1,5 +1,5 @@
 
-module Day15 where
+module Day15(day15Main) where
 
 import Utils(RawInput, Coordinate, CoordinateMap, coordinateMap, convertCoordinateMap, collectNeighbors)
 import qualified Data.Map as Map
@@ -16,8 +16,8 @@ day15Input = do
   inputs <- readFile "day15Input.txt"
   return (lines inputs)
 
-main :: IO ()
-main = do
+day15Main :: IO ()
+day15Main = do
     rawInput <- day15Input
 
     let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)

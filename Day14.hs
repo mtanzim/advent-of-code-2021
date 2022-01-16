@@ -1,4 +1,4 @@
-module Day14 where
+module Day14(day14Main) where
 
 import Data.List.Split
 import qualified Data.Map as Map
@@ -81,15 +81,15 @@ day14Input = do
     getRuleList _ = []
 
 -- main :: IO Int
-main :: IO Int
-main = do
+day14Main :: IO ()
+day14Main = do
   (template, ruleLst) <- day14Input
-  return (mainFn template (Map.fromList ruleLst))
+  print (mainFn template (Map.fromList ruleLst))
 
 -- mainFn :: String -> Map.Map String Char -> Int
 mainFn :: [Char] -> Map.Map String Char -> Int
 mainFn template ruleMap =
-  let occurrenceMap = makeMapOfOccurrence (polymerize 20 ruleMap template)
+  let occurrenceMap = makeMapOfOccurrence (polymerize 10 ruleMap template)
       values = Map.elems occurrenceMap
       minOcc = minimum values
       maxOcc = maximum values

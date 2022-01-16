@@ -11,6 +11,9 @@ import Day6 (day6Main)
 import Day7 (day7Main)
 import Day8 (day8Main)
 import Day9 (day9Main)
+import Day10 (day10Main)
+import Day14 (day14Main)
+import Day15 (day15Main)
 import System.Exit (exitSuccess)
 
 main :: IO ()
@@ -28,5 +31,7 @@ main = forever $ do
     "8" -> day8Main
     "9" -> day9Main
     "10" -> day10Main
+    "14" -> day14Main
+    "15" -> day15Main
     "q" -> exitSuccess
     _ -> putStrLn "Invalid entry"
