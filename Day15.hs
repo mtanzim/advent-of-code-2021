@@ -39,7 +39,14 @@ expandCoordMap coordMap size =
             let 
                 expandedCoord = tail $ expandSingleCoord curCoord size
                 updatedMap = foldr fn' acc expandedCoord where
-                    fn' curCoord' acc' = Map.insert curCoord' 0 acc'
+                    fn' (curX, curY) acc' = 
+                        let
+                            prevX = curX - size
+                            prevY = curY - size
+                            riskX = Map.findWithDefault (-1) (prevX, curY) acc'
+                            riskY = Map.findWithDefault (-1) (curX, prevY) acc'
+                            risk = max riskX riskY
+                        in Map.insert (curX, curY) risk acc'
             in
                 updatedMap
 
