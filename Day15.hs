@@ -40,15 +40,16 @@ djikstra = do
         edgeTo :: Map.Map Coordinate Coordinate
         edgeTo = Map.empty
         distTo :: Map.Map Coordinate Int
-        distTo = foldr fn Map.empty (Map.toList coordMap) where
+        distTo' = foldr fn Map.empty (Map.toList coordMap) where
             fn (curCoord, _) acc = Map.insert curCoord (maxBound :: Int) acc
+        distTo = Map.insert source 0 distTo'
 
         pq :: PQMin.MinQueue Vertex
         pq = PQMin.singleton (Vertex source 0)
         rv = go pq edgeTo distTo where
             go q et dt = 
                 if PQMin.null q then
-                    et
+                    dt
                 else
                     let 
                         Vertex fromCoord _ = PQMin.findMin q
