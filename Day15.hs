@@ -53,8 +53,9 @@ djikstra = do
                                     fromDistTo = Map.findWithDefault 0 fromCoord dt'
                                     toDistTo = Map.findWithDefault 0 toCoord dt'
                                     minDistTo = min toDistTo (fromDistTo + weight)
-                                    updatedDistTo = Map.mapWithKey udtf dt' where
-                                        udtf k v = if k == toCoord then minDistTo else v
+                                    updatedDistTo = Map.insert toCoord minDistTo dt'
+                                    -- updatedDistTo = Map.mapWithKey udtf dt' where
+                                    --     udtf k v = if k == toCoord then minDistTo else v
 
                                     -- curEdgeTo = Map.findWithDefault toCoord fromCoord et'
                                     -- updatedCurEdgeTo = if minDistTo < toDistTo then toCoord else curEdgeTo
@@ -68,6 +69,6 @@ djikstra = do
                                 in
                                     (updatedQ, Map.empty, updatedDistTo)
                         in go uq uet udt vst'
-    print (rv)
+    -- print (rv)
     print (Map.findMax rv)
     
