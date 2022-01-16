@@ -43,19 +43,23 @@ djikstra = do
         distTo' = foldr fn Map.empty (Map.toList coordMap) where
             fn (curCoord, _) acc = Map.insert curCoord (maxBound :: Int) acc
         distTo = Map.insert source 0 distTo'
+        visited :: Map.Map Coordinate Bool
+        visited = foldr fnVisit Map.empty (Map.toList coordMap) where
+            fnVisit (curCoord, _) acc = Map.insert curCoord False acc
 
         pq :: PQMin.MinQueue Vertex
         pq = PQMin.singleton (Vertex source 0)
-        rv = go pq edgeTo distTo where
-            go q et dt = 
+        rv = go pq edgeTo distTo visited where
+            go q et dt vst = 
                 if PQMin.null q then
                     dt
                 else
                     let 
                         Vertex fromCoord _ = PQMin.findMin q
+                        vst' = Map.insert fromCoord True vst
                         neighbors :: CoordinateMap
                         neighbors = collectNeighbors fromCoord coordMap
-                        filteredNeighborsLst = Map.toList $ Map.filterWithKey (\k _ -> k /= fromCoord) neighbors
+                        filteredNeighborsLst = Map.toList $ Map.filterWithKey (\k _ -> not $ Map.findWithDefault False k vst') neighbors
                         zero = (PQMin.deleteMin q, et, dt)
                         (uq, uet, udt) = foldr relax zero filteredNeighborsLst where
                             relax (toCoord, weight) (q', et', dt') =
@@ -66,18 +70,18 @@ djikstra = do
                                     updatedDistTo = Map.mapWithKey udtf dt' where
                                         udtf k v = if k == toCoord then minDistTo else v
 
-                                    curEdgeTo = Map.findWithDefault toCoord fromCoord et'
-                                    updatedCurEdgeTo = if minDistTo < toDistTo then toCoord else curEdgeTo
-                                    updatedEdgeTo = Map.mapWithKey uetf et' where
-                                        uetf k v = if k == toCoord then updatedCurEdgeTo else v
+                                    -- curEdgeTo = Map.findWithDefault toCoord fromCoord et'
+                                    -- updatedCurEdgeTo = if minDistTo < toDistTo then toCoord else curEdgeTo
+                                    -- updatedEdgeTo = Map.mapWithKey uetf et' where
+                                    --     uetf k v = if k == fromCoord then updatedCurEdgeTo else v
 
                                     filteredQ = PQMin.filter (\(Vertex coord' _) -> toCoord /= coord') q'
                                     updatedQ = PQMin.insert (Vertex toCoord minDistTo) filteredQ
 
 
                                 in
-                                    (updatedQ, updatedEdgeTo, updatedDistTo)
-                        in go uq uet udt
+                                    (updatedQ, Map.empty, updatedDistTo)
+                        in go uq uet udt vst'
 
 
 
