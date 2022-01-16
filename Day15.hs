@@ -20,7 +20,7 @@ data EdgeTo = EdgeTo {
 
 type Tracker = Map.Map Coordinate TrackerInfo
 
-data Vertex = Vertex Coordinate Integer deriving (Eq, Show)
+data Vertex = Vertex Coordinate Int deriving (Eq, Show)
 
 instance Ord Vertex where
     compare (Vertex _ distA) (Vertex _ distB)  = compare distA distB
@@ -44,21 +44,43 @@ djikstra = do
         source = (0,0)
         pq :: PQMin.MinQueue Vertex
         pq = PQMin.singleton (Vertex source 0)
-        go pq edgeTo distTo where
+        rv = go pq edgeTo distTo where
             go q et dt = 
                 let 
-                    v = fromMaybe ((-1), (-1)) PQMin.getMin
+                    Vertex v _ = PQMin.findMin q
                     neighbors :: CoordinateMap
                     neighbors = collectNeighbors v coordMap
-                    filteredNeighbors = filter (\c -> c != v) neighbors
-                    foldr relax zero filteredNeighbors where
-                        relax (coord, weight) acc = 
+                    filteredNeighborsLst = Map.toList $ Map.filterWithKey (\k _ -> k /= v) neighbors
+                    zero = (q, et, dt)
+                in
+                    foldr relax zero filteredNeighborsLst where
+                        relax (coord, weight) (q', et', dt') =
                             let
-                                (from, to)
+                                (from, to) = coord
+                                curDist = Map.findWithDefault 0 coord dt'
+                                newDist = curDist + weight
+                                updatedCurDist = min curDist newDist
+                                curEdgeTo = Map.findWithDefault coord coord et'
+                                updatedCurEdgeTo = if newDist < curDist then coord else curEdgeTo
+                                filteredQ = PQMin.filter (\(Vertex coord' dist) -> coord /= coord') q'
+                                
+                                updatedQ = PQMin.insert (Vertex coord updatedCurDist) filteredQ
+                                updatedDistTo = Map.mapWithKey udtf dt' where
+                                    udtf k v = if k == coord then updatedCurDist else v
+                                updatedEdgeTo = Map.mapWithKey uetf et' where
+                                    uetf k v = if k == coord then updatedCurEdgeTo else v
+                            in
+                                (updatedQ, updatedEdgeTo, updatedDistTo)
+
+
+
+
+
 
         -- go pq distTo
     print (PQMin.toList pq)
     print (distTo)
+    print (rv)
     
 
 
