@@ -19,11 +19,39 @@ day15Input = do
 day15Main :: IO ()
 day15Main = do
     rawInput <- day15Input
-
     let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
     print (findLeastRiskDjikstra coordMap (0,0))
 
+expandSingleCoord :: Coordinate -> Int -> [Coordinate]
+expandSingleCoord (x,y) size =
+    let 
+        newCoordOneDimension = map (*size) [1..4]
+        xs = x : map (+x) newCoordOneDimension
+        ys = y : map (+y) newCoordOneDimension
+        newCoord = [(x,y) | x <- xs, y <- ys]
+    in 
+        newCoord
 
+expandCoordMap :: Map.Map Coordinate Int -> Int -> Map.Map Coordinate Int
+expandCoordMap coordMap size =
+    foldr fn coordMap (Map.toList coordMap) where
+        fn (curCoord, _) acc =
+            let 
+                expandedCoord = tail $ expandSingleCoord curCoord size
+                updatedMap = foldr fn' acc expandedCoord where
+                    fn' curCoord' acc' = Map.insert curCoord' 0 acc'
+            in
+                updatedMap
+
+
+test = do
+    rawInput <- day15Input
+    let 
+        coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+        size = length rawInput
+    print size
+    print $ expandCoordMap coordMap (length rawInput)
+    
 -- based on: https://algs4.cs.princeton.edu/44sp/DijkstraSP.java.html
 findLeastRiskDjikstra :: Map.Map Coordinate Int -> Coordinate -> Int
 findLeastRiskDjikstra coordMap source = do
