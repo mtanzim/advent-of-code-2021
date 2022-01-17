@@ -25,7 +25,7 @@ day15Main = do
 expandSingleCoord :: Coordinate -> Int -> [Coordinate]
 expandSingleCoord (x,y) size =
     let 
-        newCoordOneDimension = map (*size) [1..4]
+        newCoordOneDimension = map (*size) [1..2]
         xs = x : map (+x) newCoordOneDimension
         ys = y : map (+y) newCoordOneDimension
         newCoord = [(x,y) | x <- xs, y <- ys]
@@ -39,16 +39,27 @@ expandCoordMap coordMap size =
             let 
                 expandedCoord = tail $ expandSingleCoord curCoord size
                 updatedMap = foldr fn' acc expandedCoord where
-                    fn' (curX, curY) acc' = 
-                        let
-                            prevX = curX - size
-                            prevY = curY - size
-                            riskX = Map.findWithDefault (-1) (prevX, curY) acc'
-                            riskY = Map.findWithDefault (-1) (curX, prevY) acc'
-                            risk = max riskX riskY
-                        in Map.insert (curX, curY) risk acc'
+                    fn' (curX, curY) acc' = Map.insert (curX, curY) (-1) acc'
             in
                 updatedMap
+
+fillRisks :: Map.Map Coordinate Int -> Int -> Map.Map Coordinate Int
+fillRisks coordMap size = go coordMap (Map.toList coordMap) where
+    go cm [] = cm
+    go cm (((x,y), risk):rest) = if risk < 0 then
+        let
+            prevX = x - size
+            prevY = y - size
+            riskY = Map.findWithDefault (-1) (x,prevY) cm
+            riskX = Map.findWithDefault (-1) (prevX,y) cm
+            riskUpdated = max riskX riskY
+            um = Map.insert (x,y) riskUpdated cm
+        in
+            go um rest
+            
+    else
+        go cm rest
+
 
 
 test = do
@@ -56,8 +67,10 @@ test = do
     let 
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
         size = length rawInput
-    print size
-    print $ expandCoordMap coordMap (length rawInput)
+        expanded = expandCoordMap coordMap size
+    -- print size
+    print expanded
+    print $ fillRisks expanded size
     
 -- based on: https://algs4.cs.princeton.edu/44sp/DijkstraSP.java.html
 findLeastRiskDjikstra :: Map.Map Coordinate Int -> Coordinate -> Int
