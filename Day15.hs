@@ -24,11 +24,14 @@ day15Main = do
         size = length rawInput
         expandedCoordMap = expandCoordMap coordMap size
         expandedAndfilledCoordMap = fillRisks expandedCoordMap size
+        expandedCoords = expandCoordMapAlt coordMap size
+        expandedAndfilledCoordMapAlt = fillRisksAlt coordMap expandedCoords size
     print (findLeastRiskDjikstra coordMap (0,0))
     -- TODO: this is super slow (takes like 3 mins :scream), fix
     -- Probably need vectors and O(1) hash maps to get acceptable perf
-    -- Algos here (ie: expandCoordMap, fillRisks) probably also need optimzations
-    print (findLeastRiskDjikstra expandedAndfilledCoordMap (0,0))
+    -- Algos here (ie: expandCoordMap, fillRisks) probably also need optimizations
+    -- print (findLeastRiskDjikstra expandedAndfilledCoordMap (0,0))
+    print (findLeastRiskDjikstra expandedAndfilledCoordMapAlt (0,0))
 
 expandSingleCoord :: Coordinate -> Int -> [Coordinate]
 expandSingleCoord (x,y) size =
@@ -40,14 +43,22 @@ expandSingleCoord (x,y) size =
     in 
         newCoord
 
+
+expandCoordMapAlt :: Map.Map Coordinate Int -> Int -> [Coordinate]
+expandCoordMapAlt coordMap size =
+    concatMap fn (Map.toList coordMap) where
+        fn (curCoord,_) = tail $ expandSingleCoord curCoord size
+
 expandCoordMap :: Map.Map Coordinate Int -> Int -> Map.Map Coordinate Int
 expandCoordMap coordMap size =
     foldr fn coordMap (Map.toList coordMap) where
         fn (curCoord, _) acc =
             let 
                 expandedCoord = tail $ expandSingleCoord curCoord size
-                updatedMap = foldr fn' acc expandedCoord where
-                    fn' (curX, curY) acc' = Map.insert (curX, curY) (-1) acc'
+                updatedMap = go acc expandedCoord where
+                    go acc' [] = acc'
+                    go acc' ((curX,curY):rest) = go (Map.insert (curX, curY) (-1) acc') rest
+                    -- fn' (curX, curY) acc' = Map.insert (curX, curY) (-1) acc'
             in
                 updatedMap
 
@@ -69,15 +80,29 @@ fillRisks coordMap size = go coordMap (Map.toList coordMap) where
     else
         go cm rest
 
-
+fillRisksAlt :: Map.Map Coordinate Int -> [Coordinate] -> Int -> Map.Map Coordinate Int
+fillRisksAlt coordMap newCoords size = go coordMap newCoords where
+    go cm [] = cm
+    go cm ((x,y):rest) = 
+        let
+            prevX = x - size
+            prevY = y - size
+            riskY = Map.findWithDefault (-1) (x,prevY) cm
+            riskX = Map.findWithDefault (-1) (prevX,y) cm
+            -- to overwrite default (-1) values
+            riskMax = max riskX riskY
+            riskUpdated = if riskMax == 9 then 1 else riskMax + 1
+            um = Map.insert (x,y) riskUpdated cm
+        in
+            go um rest
 
 test = do
     rawInput <- day15Input
     let 
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
         size = length rawInput
-        expandedCoordMap = expandCoordMap coordMap size
-        expandedAndfilledCoordMap = fillRisks expandedCoordMap size
+        expandedCoords = expandCoordMapAlt coordMap size
+        expandedAndfilledCoordMap = fillRisksAlt coordMap expandedCoords size
     print $ expandedAndfilledCoordMap
     
 -- based on: https://algs4.cs.princeton.edu/44sp/DijkstraSP.java.html
