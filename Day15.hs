@@ -25,6 +25,9 @@ day15Main = do
         expandedCoordMap = expandCoordMap coordMap size
         expandedAndfilledCoordMap = fillRisks expandedCoordMap size
     print (findLeastRiskDjikstra coordMap (0,0))
+    -- TODO: this is super slow (takes like 3 mins :scream), fix
+    -- Probably need vectors and O(1) hash maps to get acceptable perf
+    -- Algos here (ie: expandCoordMap, fillRisks) probably also need optimzations
     print (findLeastRiskDjikstra expandedAndfilledCoordMap (0,0))
 
 expandSingleCoord :: Coordinate -> Int -> [Coordinate]
