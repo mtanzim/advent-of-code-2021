@@ -19,13 +19,18 @@ day15Input = do
 day15Main :: IO ()
 day15Main = do
     rawInput <- day15Input
-    let coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+    let 
+        coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
+        size = length rawInput
+        expandedCoordMap = expandCoordMap coordMap size
+        expandedAndfilledCoordMap = fillRisks expandedCoordMap size
     print (findLeastRiskDjikstra coordMap (0,0))
+    print (findLeastRiskDjikstra expandedAndfilledCoordMap (0,0))
 
 expandSingleCoord :: Coordinate -> Int -> [Coordinate]
 expandSingleCoord (x,y) size =
     let 
-        newCoordOneDimension = map (*size) [1..2]
+        newCoordOneDimension = map (*size) [1..4]
         xs = x : map (+x) newCoordOneDimension
         ys = y : map (+y) newCoordOneDimension
         newCoord = [(x,y) | x <- xs, y <- ys]
@@ -52,11 +57,12 @@ fillRisks coordMap size = go coordMap (Map.toList coordMap) where
             prevY = y - size
             riskY = Map.findWithDefault (-1) (x,prevY) cm
             riskX = Map.findWithDefault (-1) (prevX,y) cm
-            riskUpdated = max riskX riskY
+            -- to overwrite default (-1) values
+            riskMax = max riskX riskY
+            riskUpdated = if riskMax == 9 then 1 else riskMax + 1
             um = Map.insert (x,y) riskUpdated cm
         in
             go um rest
-            
     else
         go cm rest
 
@@ -67,10 +73,9 @@ test = do
     let 
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
         size = length rawInput
-        expanded = expandCoordMap coordMap size
-    -- print size
-    print expanded
-    print $ fillRisks expanded size
+        expandedCoordMap = expandCoordMap coordMap size
+        expandedAndfilledCoordMap = fillRisks expandedCoordMap size
+    print $ expandedAndfilledCoordMap
     
 -- based on: https://algs4.cs.princeton.edu/44sp/DijkstraSP.java.html
 findLeastRiskDjikstra :: Map.Map Coordinate Int -> Coordinate -> Int
