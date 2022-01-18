@@ -22,14 +22,15 @@ day15Main = do
     let 
         coordMap = convertCoordinateMap (coordinateMap rawInput 0 Map.empty)
         size = length rawInput
+        source = (0,0)
         expandedCoords = expandCoordMap coordMap size
         expandedAndfilledCoordMapAlt = fillRisks coordMap expandedCoords size
-    print (findLeastRiskDjikstra coordMap (0,0))
-    -- TODO: this is super slow (takes like 3 mins :scream), fix
+    print (findLeastRiskDjikstra coordMap source)
+    -- TODO: part 2 is super slow (takes like 3 mins :scream), fix
     -- Probably need vectors and O(1) hash maps to improve perf
     -- Algos here (ie: expandCoordMap, fillRisks) probably also need optimizations
     -- ie: we don't need to expandCoordMap, but rather lazily get the expanded coords and risks as required
-    print (findLeastRiskDjikstra expandedAndfilledCoordMapAlt (0,0))
+    print (findLeastRiskDjikstra expandedAndfilledCoordMapAlt source)
 
 expandSingleCoord :: Coordinate -> Int -> [Coordinate]
 expandSingleCoord (x,y) size =
